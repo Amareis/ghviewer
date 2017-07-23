@@ -34,7 +34,7 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         new webpack.optimize.UglifyJsPlugin({include: /\.min\.js$/}),
         new HtmlWebpackPlugin({template: 'src/index.ejs'}),
-        new CopyWebpackPlugin([{from: 'src/styles', to: 'styles'}])
+        new CopyWebpackPlugin([{from: 'src/styles', to: 'styles'}, {from: 'src/fonts', to: 'fonts'}])
     ],
     devServer: {
         contentBase: path.join(__dirname, "dist"),
