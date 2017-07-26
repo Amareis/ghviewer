@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux'
 import {QUERY_TYPED, SEARCH_SUCCESS, USER_ADDED, USER_SELECTED, USER_UPDATED, USER_REMOVED,
-REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS} from '../constants'
+REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS, SUMMARY_USER} from '../constants'
 
 const initialState = {
     users: {
@@ -19,7 +19,9 @@ const initialState = {
     },
     pages: {
         commits: {},
-        repos: {}
+        repos: {
+            SUMMARY_USER: null
+        }
     }
 };
 

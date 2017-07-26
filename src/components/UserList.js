@@ -1,10 +1,19 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import UserEntry from './UserEntry'
+import SummaryUserEntry from './SummaryUserEntry'
 import {ListGroup} from 'react-bootstrap'
+import {SUMMARY_USER} from '../constants'
 
-const UserList = ({ users, selected, onUserClick, onUserRemove, placeholder=null, ...props }) =>
+const UserList = ({ users, selected, onUserClick, onUserRemove, summary=false, placeholder=null, ...props }) =>
     <ListGroup {...props}>
+        {summary && users.length > 1 &&
+            <SummaryUserEntry
+                stars={100}
+                selected={selected === SUMMARY_USER}
+                onClick={ onUserClick ? () => onUserClick({login: SUMMARY_USER}) : null }
+            />
+        }
         {users.length ?
             users.map(user =>
                 <UserEntry
@@ -25,7 +34,7 @@ UserList.propTypes = {
         PropTypes.shape({
             login: PropTypes.string.isRequired,
             name: PropTypes.string,
-            photoUrl: PropTypes.string,
+            avatar_url: PropTypes.string,
             stars: PropTypes.number,
         }).isRequired
     ).isRequired,

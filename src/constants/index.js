@@ -11,3 +11,5 @@ export const REPO_SELECTED = 'REPO_SELECTED'
 export const COMMITS_ADDED = 'COMMITS_ADDED'
 export const MORE_COMMITS = 'MORE_COMMITS'
 export const MORE_REPOS = 'MORE_REPOS'
+
+export const SUMMARY_USER = '!summ'

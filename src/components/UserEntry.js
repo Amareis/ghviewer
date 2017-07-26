@@ -1,11 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {ListGroupItem, Badge, Image, Grid, Col, Row, Glyphicon} from 'react-bootstrap'
+import {ListGroupItem, Badge, Image, Col, Row, Glyphicon} from 'react-bootstrap'
 
 const UserEntry = ({ login, name, avatar_url, stars, selected, onClick, onRemove}) =>
     <ListGroupItem onClick={onClick} active={selected}>
         <Col xs={3} style={{paddingLeft: "5px", paddingRight: "7px"}}>
-            <Image responsive src={avatar_url || `https://github.com/identicons/${login}.png`}  />
+            {avatar_url &&<Image responsive src={avatar_url}  />}
         </Col>
         <Col xs={9}>
             <Row><strong>{name ? name : login}</strong></Row>
@@ -31,7 +31,7 @@ UserEntry.defaultProps = {
 UserEntry.propTypes = {
     login: PropTypes.string.isRequired,
     name: PropTypes.string,
-    photoUrl: PropTypes.string,
+    avatar_url: PropTypes.string,
     stars: PropTypes.number,
     onClick: PropTypes.func,
 }

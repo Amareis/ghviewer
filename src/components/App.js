@@ -4,6 +4,7 @@ import UserSearchContainer from '../containers/UserSearchContainer'
 import UserList from './UserList'
 import RepoList from './RepoList'
 import CommitList from './CommitList'
+import {SUMMARY_USER} from "../constants/index";
 
 const App = ({users, repos, commits, pages, selectUser, removeUser, selectRepo, loadMoreCommits, loadMoreRepos}) =>
     <Grid>
@@ -19,11 +20,17 @@ const App = ({users, repos, commits, pages, selectUser, removeUser, selectRepo, 
                         loadMoreRepos(user)
                 }}
                 onUserRemove={removeUser}
+                summary
             />
         </Col>
         <Col sm={3}>
             <RepoList
-                repos={repos.repos[users.selected]}
+                repos={
+                    users.selected === SUMMARY_USER ?
+                        //соединяем все имеющиеся репы в один список и вообще это бы надо кешировать
+                        Object.values(repos.repos).reduce((acc, el) => Array.concat(acc, el), [])
+                        : repos.repos[users.selected]
+                }
                 selected={repos.selected}
                 onRepoClick={(repo) => {
                     selectRepo(repo);
