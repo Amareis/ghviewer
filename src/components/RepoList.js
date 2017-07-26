@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import RepoEntry from './RepoEntry'
-import {ListGroup} from 'react-bootstrap'
+import {ListGroup, ListGroupItem} from 'react-bootstrap'
 
-const RepoList = ({ repos, selected, onRepoClick }) => {
+const RepoList = ({ repos, selected, onRepoClick, loadNextPage }) => {
     if (!repos.length)
         return null;
 
@@ -17,6 +17,12 @@ const RepoList = ({ repos, selected, onRepoClick }) => {
                 stars={repo.stargazers_count}
                 onClick={ () => onRepoClick(repo) }/>
         )}
+
+        {loadNextPage &&
+            <ListGroupItem onClick={loadNextPage}>
+                Load more repos...
+            </ListGroupItem>
+        }
     </ListGroup>
 }
 

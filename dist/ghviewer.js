@@ -34473,10 +34473,11 @@ var USER_ADDED = exports.USER_ADDED = 'USER_ADDED';
 var USER_SELECTED = exports.USER_SELECTED = 'USER_SELECTED';
 var USER_UPDATED = exports.USER_UPDATED = 'USER_UPDATED';
 var USER_REMOVED = exports.USER_REMOVED = 'USER_REMOVED';
-var REPOS_UPDATED = exports.REPOS_UPDATED = 'REPOS_UPDATED';
+var REPOS_ADDED = exports.REPOS_ADDED = 'REPOS_ADDED';
 var REPO_SELECTED = exports.REPO_SELECTED = 'REPO_SELECTED';
 var COMMITS_ADDED = exports.COMMITS_ADDED = 'COMMITS_ADDED';
 var MORE_COMMITS = exports.MORE_COMMITS = 'MORE_COMMITS';
+var MORE_REPOS = exports.MORE_REPOS = 'MORE_REPOS';
 
 /***/ }),
 /* 202 */
@@ -35881,7 +35882,7 @@ module.exports = exports["default"];
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.loadMoreCommits = exports.addCommits = exports.selectRepo = exports.updateRepos = exports.removeUser = exports.updateUser = exports.selectUser = exports.addUser = exports.failRequest = exports.successSearch = exports.handleSearch = undefined;
+exports.loadMoreRepos = exports.loadMoreCommits = exports.addCommits = exports.selectRepo = exports.addRepos = exports.removeUser = exports.updateUser = exports.selectUser = exports.addUser = exports.failRequest = exports.successSearch = exports.handleSearch = undefined;
 
 var _constants = __webpack_require__(201);
 
@@ -35934,11 +35935,12 @@ var removeUser = exports.removeUser = function removeUser(user) {
     };
 };
 
-var updateRepos = exports.updateRepos = function updateRepos(user, repos) {
+var addRepos = exports.addRepos = function addRepos(user, repos, nextPage) {
     return {
-        type: _constants.REPOS_UPDATED,
+        type: _constants.REPOS_ADDED,
         user: user,
-        repos: repos
+        repos: repos,
+        nextPage: nextPage
     };
 };
 
@@ -35962,6 +35964,14 @@ var loadMoreCommits = exports.loadMoreCommits = function loadMoreCommits(repo, p
     return {
         type: _constants.MORE_COMMITS,
         repo: repo,
+        page: page
+    };
+};
+
+var loadMoreRepos = exports.loadMoreRepos = function loadMoreRepos(user, page) {
+    return {
+        type: _constants.MORE_REPOS,
+        user: user,
         page: page
     };
 };
@@ -75863,9 +75873,13 @@ var repos = function repos() {
     var action = arguments[1];
 
     switch (action.type) {
-        case _constants.REPOS_UPDATED:
+        case _constants.REPOS_ADDED:
             return _extends({}, state, {
-                repos: _extends({}, state.repos, _defineProperty({}, action.user.login, action.repos))
+                repos: _extends({}, state.repos, _defineProperty({}, action.user.login, (state.repos[action.user.login] || []).concat(action.repos)))
+            });
+        case _constants.USER_SELECTED:
+            return _extends({}, state, {
+                selected: state.selected.startsWith(action.user.login) ? state.selected : ""
             });
         case _constants.USER_REMOVED:
             var _state$repos = state.repos,
@@ -75878,7 +75892,7 @@ var repos = function repos() {
             });
         case _constants.REPO_SELECTED:
             return _extends({}, state, {
-                selected: action.repo.full_name
+                selected: state.selected === action.repo.full_name ? "" : action.repo.full_name
             });
         default:
             return state;
@@ -75912,25 +75926,40 @@ var commits = function commits() {
     }
 };
 
-var pages = function pages() {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState.pages;
+var commitsPages = function commitsPages() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState.pages.commits;
     var action = arguments[1];
 
     switch (action.type) {
         case _constants.MORE_COMMITS:
-            return _extends({}, state, {
-                commits: _extends({}, state.commits, _defineProperty({}, action.repo.full_name, null)) //чтобы пропала кнопка подгрузки коммитов
-            });
+            return _extends({}, state, _defineProperty({}, action.repo.full_name, null)); //чтобы пропала кнопка подгрузки коммитов
         case _constants.COMMITS_ADDED:
-            return _extends({}, state, {
-                commits: _extends({}, state.commits, _defineProperty({}, action.repo.full_name, action.nextPage))
-            });
+            return _extends({}, state, _defineProperty({}, action.repo.full_name, action.nextPage));
         case _constants.USER_REMOVED:
-            var newCommits = {};
-            for (var key in state.commits) {
-                if (!key.startsWith(action.user.login)) newCommits[key] = state[key];
+            var newState = {};
+            for (var key in state) {
+                if (!key.startsWith(action.user.login)) newState[key] = state[key];
             }
-            return _extends({}, state, { commits: newCommits });
+            return newState;
+        default:
+            return state;
+    }
+};
+
+var reposPages = function reposPages() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState.pages.commits;
+    var action = arguments[1];
+
+    switch (action.type) {
+        case _constants.MORE_REPOS:
+            return _extends({}, state, _defineProperty({}, action.user.login, null)); //чтобы пропала кнопка подгрузки коммитов
+        case _constants.REPOS_ADDED:
+            return _extends({}, state, _defineProperty({}, action.user.login, action.nextPage));
+        case _constants.USER_REMOVED:
+            var _ = state[action.user.login],
+                newState = _objectWithoutProperties(state, [action.user.login]);
+
+            return newState;
         default:
             return state;
     }
@@ -75941,7 +75970,10 @@ var ghViewer = (0, _redux.combineReducers)({
     userRepos: repos,
     repoCommits: commits,
     search: search,
-    pages: pages
+    pages: (0, _redux.combineReducers)({
+        repos: reposPages,
+        commits: commitsPages
+    })
 });
 
 exports.default = ghViewer;
@@ -75981,10 +76013,11 @@ function mapStateToProps(state) {
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     return (0, _redux.bindActionCreators)({
-        onUserSelect: _actions.selectUser,
-        onUserRemove: _actions.removeUser,
-        onRepoSelect: _actions.selectRepo,
-        loadMoreCommits: _actions.loadMoreCommits
+        selectUser: _actions.selectUser,
+        removeUser: _actions.removeUser,
+        selectRepo: _actions.selectRepo,
+        loadMoreCommits: _actions.loadMoreCommits,
+        loadMoreRepos: _actions.loadMoreRepos
     }, dispatch);
 };
 
@@ -76030,10 +76063,11 @@ var App = function App(_ref) {
         repos = _ref.repos,
         commits = _ref.commits,
         pages = _ref.pages,
-        onUserSelect = _ref.onUserSelect,
-        onUserRemove = _ref.onUserRemove,
-        onRepoSelect = _ref.onRepoSelect,
-        loadMoreCommits = _ref.loadMoreCommits;
+        selectUser = _ref.selectUser,
+        removeUser = _ref.removeUser,
+        selectRepo = _ref.selectRepo,
+        loadMoreCommits = _ref.loadMoreCommits,
+        loadMoreRepos = _ref.loadMoreRepos;
     return _react2.default.createElement(
         _reactBootstrap.Grid,
         null,
@@ -76045,8 +76079,11 @@ var App = function App(_ref) {
             _react2.default.createElement(_UserList2.default, {
                 users: users.users,
                 selected: users.selected,
-                onUserClick: onUserSelect,
-                onUserRemove: onUserRemove
+                onUserClick: function onUserClick(user) {
+                    selectUser(user);
+                    if (pages.repos[user.login] === undefined) loadMoreRepos(user);
+                },
+                onUserRemove: removeUser
             })
         ),
         _react2.default.createElement(
@@ -76056,9 +76093,14 @@ var App = function App(_ref) {
                 repos: repos.repos[users.selected],
                 selected: repos.selected,
                 onRepoClick: function onRepoClick(repo) {
-                    onRepoSelect(repo);
+                    selectRepo(repo);
                     if (pages.commits[repo.full_name] === undefined) loadMoreCommits(repo);
-                }
+                },
+                loadNextPage: pages.repos[users.selected] ? function () {
+                    return loadMoreRepos(users.users.find(function (user) {
+                        return user.login === users.selected;
+                    }), pages.repos[users.selected]);
+                } : null
             })
         ),
         _react2.default.createElement(
@@ -91072,7 +91114,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var RepoList = function RepoList(_ref) {
     var repos = _ref.repos,
         selected = _ref.selected,
-        onRepoClick = _ref.onRepoClick;
+        onRepoClick = _ref.onRepoClick,
+        loadNextPage = _ref.loadNextPage;
 
     if (!repos.length) return null;
 
@@ -91089,7 +91132,12 @@ var RepoList = function RepoList(_ref) {
                 onClick: function onClick() {
                     return onRepoClick(repo);
                 } });
-        })
+        }),
+        loadNextPage && _react2.default.createElement(
+            _reactBootstrap.ListGroupItem,
+            { onClick: loadNextPage },
+            'Load more repos...'
+        )
     );
 };
 
@@ -92540,7 +92588,7 @@ var _anotherRestClient2 = _interopRequireDefault(_anotherRestClient);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _marked = [searchUsers, getUserDetails, getCommits, mySaga].map(regeneratorRuntime.mark);
+var _marked = [searchUsers, getUserDetails, getCommits, getRepos, mySaga].map(regeneratorRuntime.mark);
 
 var api = new _anotherRestClient2.default('https://api.github.com');
 api.res({
@@ -92601,7 +92649,7 @@ function searchUsers(action) {
 }
 
 function getUserDetails(action) {
-    var user, repos;
+    var user;
     return regeneratorRuntime.wrap(function getUserDetails$(_context2) {
         while (1) {
             switch (_context2.prev = _context2.next) {
@@ -92616,30 +92664,21 @@ function getUserDetails(action) {
                     return (0, _effects.put)((0, _actions.updateUser)(user));
 
                 case 6:
-                    _context2.next = 8;
-                    return (0, _effects.call)(api.users(action.user.login).repos.get);
-
-                case 8:
-                    repos = _context2.sent;
-                    _context2.next = 11;
-                    return (0, _effects.put)((0, _actions.updateRepos)(user, repos));
-
-                case 11:
-                    _context2.next = 17;
+                    _context2.next = 12;
                     break;
 
-                case 13:
-                    _context2.prev = 13;
+                case 8:
+                    _context2.prev = 8;
                     _context2.t0 = _context2['catch'](0);
-                    _context2.next = 17;
+                    _context2.next = 12;
                     return (0, _effects.put)((0, _actions.failRequest)(_context2.t0.message));
 
-                case 17:
+                case 12:
                 case 'end':
                     return _context2.stop();
             }
         }
-    }, _marked[1], this, [[0, 13]]);
+    }, _marked[1], this, [[0, 8]]);
 }
 
 function getCommits(action) {
@@ -92680,28 +92719,70 @@ function getCommits(action) {
     }, _marked[2], this, [[0, 11]]);
 }
 
-function mySaga() {
-    return regeneratorRuntime.wrap(function mySaga$(_context4) {
+function getRepos(action) {
+    var page, link, repos, nextPage;
+    return regeneratorRuntime.wrap(function getRepos$(_context4) {
         while (1) {
             switch (_context4.prev = _context4.next) {
                 case 0:
-                    _context4.next = 2;
-                    return (0, _effects.takeLatest)(_constants.QUERY_TYPED, searchUsers);
+                    _context4.prev = 0;
+                    page = action.page || 1;
+                    link = "";
+                    _context4.next = 5;
+                    return api.users(action.user.login).repos.get({ per_page: 20, page: page }).on('success', function (x) {
+                        return link = x.getResponseHeader('Link');
+                    });
 
-                case 2:
-                    _context4.next = 4;
-                    return (0, _effects.takeEvery)(_constants.USER_ADDED, getUserDetails);
+                case 5:
+                    repos = _context4.sent;
+                    nextPage = link && link.includes('rel="next"') ? page + 1 : null;
+                    _context4.next = 9;
+                    return (0, _effects.put)((0, _actions.addRepos)(action.user, repos, nextPage));
 
-                case 4:
-                    _context4.next = 6;
-                    return (0, _effects.takeEvery)(_constants.MORE_COMMITS, getCommits);
+                case 9:
+                    _context4.next = 15;
+                    break;
 
-                case 6:
+                case 11:
+                    _context4.prev = 11;
+                    _context4.t0 = _context4['catch'](0);
+                    _context4.next = 15;
+                    return (0, _effects.put)((0, _actions.failRequest)(_context4.t0.message));
+
+                case 15:
                 case 'end':
                     return _context4.stop();
             }
         }
-    }, _marked[3], this);
+    }, _marked[3], this, [[0, 11]]);
+}
+
+function mySaga() {
+    return regeneratorRuntime.wrap(function mySaga$(_context5) {
+        while (1) {
+            switch (_context5.prev = _context5.next) {
+                case 0:
+                    _context5.next = 2;
+                    return (0, _effects.takeLatest)(_constants.QUERY_TYPED, searchUsers);
+
+                case 2:
+                    _context5.next = 4;
+                    return (0, _effects.takeEvery)(_constants.USER_ADDED, getUserDetails);
+
+                case 4:
+                    _context5.next = 6;
+                    return (0, _effects.takeEvery)(_constants.MORE_COMMITS, getCommits);
+
+                case 6:
+                    _context5.next = 8;
+                    return (0, _effects.takeEvery)(_constants.MORE_REPOS, getRepos);
+
+                case 8:
+                case 'end':
+                    return _context5.stop();
+            }
+        }
+    }, _marked[4], this);
 }
 
 exports.default = mySaga;

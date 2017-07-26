@@ -1,5 +1,5 @@
 import {QUERY_TYPED, SEARCH_SUCCESS, REQUEST_FAIL, USER_ADDED, USER_SELECTED, USER_UPDATED,
-USER_REMOVED, REPOS_UPDATED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS} from '../constants'
+USER_REMOVED, REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS} from '../constants'
 
 
 export const handleSearch = query => {
@@ -51,11 +51,12 @@ export const removeUser = user => {
     }
 }
 
-export const updateRepos = (user, repos) => {
+export const addRepos = (user, repos, nextPage) => {
     return {
-        type: REPOS_UPDATED,
+        type: REPOS_ADDED,
         user: user,
-        repos: repos
+        repos: repos,
+        nextPage: nextPage
     }
 }
 
@@ -79,6 +80,14 @@ export const loadMoreCommits = (repo, page) => {
     return {
         type: MORE_COMMITS,
         repo: repo,
+        page: page
+    }
+}
+
+export const loadMoreRepos = (user, page) => {
+    return {
+        type: MORE_REPOS,
+        user: user,
         page: page
     }
 }

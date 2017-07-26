@@ -1,7 +1,7 @@
 import {connect} from 'react-redux'
 import App from '../components/App'
 import { bindActionCreators } from 'redux'
-import {selectUser, removeUser, selectRepo, loadMoreCommits} from '../actions'
+import {selectUser, removeUser, selectRepo, loadMoreCommits, loadMoreRepos} from '../actions'
 
 function mapStateToProps (state) {
     return {
@@ -15,10 +15,11 @@ function mapStateToProps (state) {
 
 const mapDispatchToProps = dispatch =>
     bindActionCreators({
-        onUserSelect: selectUser,
-        onUserRemove: removeUser,
-        onRepoSelect: selectRepo,
-        loadMoreCommits: loadMoreCommits
+        selectUser: selectUser,
+        removeUser: removeUser,
+        selectRepo: selectRepo,
+        loadMoreCommits: loadMoreCommits,
+        loadMoreRepos: loadMoreRepos
     }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchToProps)(App)
