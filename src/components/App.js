@@ -5,7 +5,7 @@ import UserList from './UserList'
 import RepoList from './RepoList'
 import CommitList from './CommitList'
 
-const App = ({users, repos, commits, onUserSelect, onUserRemove, onRepoSelect}) =>
+const App = ({users, repos, commits, pages, onUserSelect, onUserRemove, onRepoSelect, loadMoreCommits}) =>
     <Grid>
         <Row style={{height: 20}}/>
         <Col sm={3}>
@@ -21,10 +21,23 @@ const App = ({users, repos, commits, onUserSelect, onUserRemove, onRepoSelect}) 
             <RepoList
                 repos={repos.repos[users.selected]}
                 selected={repos.selected}
-                onRepoClick={onRepoSelect}/>
+                onRepoClick={(repo) => {
+                    onRepoSelect(repo);
+                    if (pages.commits[repo.full_name] === undefined)
+                        loadMoreCommits(repo)}}
+            />
         </Col>
         <Col sm={6}>
-            <CommitList commits={commits[repos.selected]}/>
+            <CommitList
+                commits={commits[repos.selected]}
+                loadNextPage={
+                    pages.commits[repos.selected] ?
+                        () => loadMoreCommits(
+                            repos.repos[users.selected].find(repo => repo.full_name === repos.selected),
+                            pages.commits[repos.selected])
+                        : null
+                }
+            />
         </Col>
     </Grid>
 

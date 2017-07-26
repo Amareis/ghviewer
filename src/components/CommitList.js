@@ -1,9 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {ListGroup} from 'react-bootstrap'
-import CommitEntry from "./CommitEntry";
+import {ListGroup, ListGroupItem} from 'react-bootstrap'
+import CommitEntry from './CommitEntry'
+import VisibilitySensor from 'react-visibility-sensor'
 
-const CommitList = ({ commits }) => {
+const CommitList = ({ commits, loadNextPage }) => {
     if (!commits.length)
         return null;
 
@@ -11,6 +12,14 @@ const CommitList = ({ commits }) => {
         {commits.map(commit =>
             <CommitEntry key={commit.hash} {...commit}/>
         )}
+
+        {loadNextPage &&
+            <VisibilitySensor scrollCheck={true} onChange={vis => vis && loadNextPage()}>
+                <ListGroupItem onClick={loadNextPage}>
+                    Load more commits...
+                </ListGroupItem>
+            </VisibilitySensor>
+        }
     </ListGroup>
 }
 

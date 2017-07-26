@@ -1,12 +1,8 @@
 import { combineReducers } from 'redux'
 import {QUERY_TYPED, SEARCH_SUCCESS, USER_ADDED, USER_SELECTED, USER_UPDATED, USER_REMOVED,
-REPOS_UPDATED, REPO_SELECTED, COMMITS_UPDATED} from '../constants'
+REPOS_UPDATED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS} from '../constants'
 
 const initialState = {
-    pagination: {
-        repos: {},
-        commits: {}
-    },
     users: {
         selected: "",
         users: []
@@ -20,6 +16,10 @@ const initialState = {
         active: false,
         query: "",
         found: []
+    },
+    pages: {
+        commits: {},
+        repos: {}
     }
 };
 
@@ -98,21 +98,23 @@ const repos = (state = initialState.userRepos, action) => {
     }
 }
 
+let trancsformCommit = (c) => {return{
+    hash: c.sha,
+    description: c.commit.message,
+    author: c.author ? c.author.login : c.commit.author.name,
+    date: c.commit.author.date
+}}
+
 const commits = (state = initialState.repoCommits, action) => {
     switch (action.type) {
-        case COMMITS_UPDATED:
+        case COMMITS_ADDED:
             return {
                 ...state,
-                [action.repo.full_name]: action.commits.map(c => {return{
-                    hash: c.sha,
-                    description: c.commit.message,
-                    author: c.author.login,
-                    date: c.commit.author.date
-                }})
+                [action.repo.full_name]:
+                    (state[action.repo.full_name] || []).concat(action.commits.map(trancsformCommit))
             }
         case USER_REMOVED:
             let newState = {}
-            console.log(state)
             for (let key in state) {
                 if (!key.startsWith(action.user.login))
                     newState[key] = state[key]
@@ -123,11 +125,37 @@ const commits = (state = initialState.repoCommits, action) => {
     }
 }
 
+const pages = (state = initialState.pages, action) => {
+    switch (action.type) {
+        case MORE_COMMITS:
+            return {
+                ...state,
+                commits: {...state.commits, [action.repo.full_name]: null} //чтобы пропала кнопка подгрузки коммитов
+            }
+        case COMMITS_ADDED:
+            return {
+                ...state,
+                commits: {...state.commits, [action.repo.full_name]: action.nextPage}
+            }
+        case USER_REMOVED:
+            let newCommits = {}
+            for (let key in state.commits) {
+                if (!key.startsWith(action.user.login))
+                    newCommits[key] = state[key]
+            }
+            return {...state, commits: newCommits}
+        default:
+            return state
+    }
+}
+
+
 const ghViewer = combineReducers({
     users: users,
     userRepos: repos,
     repoCommits: commits,
-    search: search
+    search: search,
+    pages: pages
 })
 
 export default ghViewer
