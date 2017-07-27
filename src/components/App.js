@@ -7,7 +7,8 @@ import CommitList from './CommitList'
 import {SUMMARY_USER} from "../constants/index";
 
 const App = ({users, repos, commits, pages,
-                 selectUser, removeUser, selectRepo, loadMoreCommits, loadMoreRepos}) => {
+                 selectUser, removeUser, selectRepo, refreshRepo,
+                 loadMoreCommits, loadMoreRepos}) => {
     let currentUser = users.users.find(user => user.login === users.selected)
 
     return <Grid>
@@ -40,6 +41,7 @@ const App = ({users, repos, commits, pages,
                     if (pages.commits[repo.full_name] === undefined)
                         loadMoreCommits(repo)
                 }}
+                onRepoRefresh={refreshRepo}
                 loadNextPage={
                     pages.repos[users.selected] ?
                         () => loadMoreRepos(currentUser, pages.repos[users.selected])

@@ -1,6 +1,6 @@
 import { call, put, takeLatest, takeEvery } from 'redux-saga/effects'
-import {QUERY_TYPED, USER_ADDED, MORE_COMMITS, MORE_REPOS} from './constants'
-import {successSearch, failRequest, updateUser, addRepos, addCommits} from './actions'
+import {QUERY_TYPED, USER_ADDED, MORE_COMMITS, MORE_REPOS, REPO_REFRESHED} from './constants'
+import {successSearch, failRequest, updateUser, addRepos, addCommits, updateRepo} from './actions'
 import RestClient from 'another-rest-client'
 
 var api = new RestClient('https://api.github.com');
@@ -65,11 +65,22 @@ function* getRepos(action) {
     }
 }
 
+function* getRepoDetails(action) {
+    try {
+        let repo = yield call(api.repos(action.repo.full_name).get)
+        yield put(updateRepo(action.repo, repo))
+    } catch (e) {
+        yield put(failRequest(e.message))
+    }
+}
+
 function* mySaga() {
     yield takeLatest(QUERY_TYPED, searchUsers)
     yield takeEvery(USER_ADDED, getUserDetails)
     yield takeEvery(MORE_COMMITS, getCommits)
     yield takeEvery(MORE_REPOS, getRepos)
+    yield takeLatest(REPO_REFRESHED, getCommits)
+    yield takeLatest(REPO_REFRESHED, getRepoDetails)
 }
 
 export default mySaga

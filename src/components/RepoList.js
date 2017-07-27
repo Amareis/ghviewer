@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import RepoEntry from './RepoEntry'
 import {ListGroup, ListGroupItem} from 'react-bootstrap'
 
-const RepoList = ({ repos, selected, onRepoClick, loadNextPage }) => {
+const RepoList = ({ repos, selected, onRepoClick, onRepoRefresh, loadNextPage }) => {
     if (!repos.length)
         return null;
 
@@ -14,8 +14,9 @@ const RepoList = ({ repos, selected, onRepoClick, loadNextPage }) => {
                 name={repo.full_name}
                 description={repo.description}
                 selected={selected === repo.full_name}
-                stars={repo.stargazers_count}
-                onClick={ () => onRepoClick(repo) }/>
+                onClick={ () => onRepoClick(repo) }
+                onRefresh = { () => onRepoRefresh(repo) }
+            />
         )}
 
         {loadNextPage &&

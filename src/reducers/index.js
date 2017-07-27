@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux'
 import {QUERY_TYPED, SEARCH_SUCCESS, USER_ADDED, USER_SELECTED, USER_UPDATED, USER_REMOVED,
-REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS, SUMMARY_USER} from '../constants'
+REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS, REPO_REFRESHED, REPO_UPDATED} from '../constants'
 
 const initialState = {
     users: {
@@ -103,6 +103,16 @@ const repos = (state = initialState.userRepos, action) => {
                 ...state,
                 selected: state.selected === action.repo.full_name ? "" : action.repo.full_name
             }
+        case REPO_UPDATED:
+            return {
+                ...state,
+                repos: {
+                    ...state.repos,
+                    [action.oldRepo.owner.login]:
+                        state.repos[action.oldRepo.owner.login]
+                            .map(repo => repo.id === action.oldRepo.id ? action.newRepo : repo)
+                }
+            }
         default:
             return state
     }
@@ -130,6 +140,11 @@ const commits = (state = initialState.repoCommits, action) => {
                     newState[key] = state[key]
             }
             return newState
+        case REPO_REFRESHED:
+            return {
+                ...state,
+                [action.repo.full_name]: []
+            }
         default:
             return state
     }

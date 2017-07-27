@@ -11859,6 +11859,8 @@ var REPO_SELECTED = exports.REPO_SELECTED = 'REPO_SELECTED';
 var COMMITS_ADDED = exports.COMMITS_ADDED = 'COMMITS_ADDED';
 var MORE_COMMITS = exports.MORE_COMMITS = 'MORE_COMMITS';
 var MORE_REPOS = exports.MORE_REPOS = 'MORE_REPOS';
+var REPO_REFRESHED = exports.REPO_REFRESHED = 'REPO_REFRESHED';
+var REPO_UPDATED = exports.REPO_UPDATED = 'REPO_UPDATED';
 
 var SUMMARY_USER = exports.SUMMARY_USER = '!summ';
 
@@ -35884,7 +35886,7 @@ module.exports = exports["default"];
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.loadMoreRepos = exports.loadMoreCommits = exports.addCommits = exports.selectRepo = exports.addRepos = exports.removeUser = exports.updateUser = exports.selectUser = exports.addUser = exports.failRequest = exports.successSearch = exports.handleSearch = undefined;
+exports.updateRepo = exports.refreshRepo = exports.loadMoreRepos = exports.loadMoreCommits = exports.addCommits = exports.selectRepo = exports.addRepos = exports.removeUser = exports.updateUser = exports.selectUser = exports.addUser = exports.failRequest = exports.successSearch = exports.handleSearch = undefined;
 
 var _constants = __webpack_require__(114);
 
@@ -35975,6 +35977,21 @@ var loadMoreRepos = exports.loadMoreRepos = function loadMoreRepos(user, page) {
         type: _constants.MORE_REPOS,
         user: user,
         page: page
+    };
+};
+
+var refreshRepo = exports.refreshRepo = function refreshRepo(repo) {
+    return {
+        type: _constants.REPO_REFRESHED,
+        repo: repo
+    };
+};
+
+var updateRepo = exports.updateRepo = function updateRepo(oldRepo, newRepo) {
+    return {
+        type: _constants.REPO_UPDATED,
+        oldRepo: oldRepo,
+        newRepo: newRepo
     };
 };
 
@@ -76077,6 +76094,12 @@ var repos = function repos() {
             return _extends({}, state, {
                 selected: state.selected === action.repo.full_name ? "" : action.repo.full_name
             });
+        case _constants.REPO_UPDATED:
+            return _extends({}, state, {
+                repos: _extends({}, state.repos, _defineProperty({}, action.oldRepo.owner.login, state.repos[action.oldRepo.owner.login].map(function (repo) {
+                    return repo.id === action.oldRepo.id ? action.newRepo : repo;
+                })))
+            });
         default:
             return state;
     }
@@ -76104,6 +76127,8 @@ var commits = function commits() {
                 if (!key.startsWith(action.user.login)) newState[key] = state[key];
             }
             return newState;
+        case _constants.REPO_REFRESHED:
+            return _extends({}, state, _defineProperty({}, action.repo.full_name, []));
         default:
             return state;
     }
@@ -76202,7 +76227,8 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
         removeUser: _actions.removeUser,
         selectRepo: _actions.selectRepo,
         loadMoreCommits: _actions.loadMoreCommits,
-        loadMoreRepos: _actions.loadMoreRepos
+        loadMoreRepos: _actions.loadMoreRepos,
+        refreshRepo: _actions.refreshRepo
     }, dispatch);
 };
 
@@ -76253,6 +76279,7 @@ var App = function App(_ref) {
         selectUser = _ref.selectUser,
         removeUser = _ref.removeUser,
         selectRepo = _ref.selectRepo,
+        refreshRepo = _ref.refreshRepo,
         loadMoreCommits = _ref.loadMoreCommits,
         loadMoreRepos = _ref.loadMoreRepos;
 
@@ -76293,6 +76320,7 @@ var App = function App(_ref) {
                     selectRepo(repo);
                     if (pages.commits[repo.full_name] === undefined) loadMoreCommits(repo);
                 },
+                onRepoRefresh: refreshRepo,
                 loadNextPage: pages.repos[users.selected] ? function () {
                     return loadMoreRepos(currentUser, pages.repos[users.selected]);
                 } : null
@@ -91550,6 +91578,7 @@ var RepoList = function RepoList(_ref) {
     var repos = _ref.repos,
         selected = _ref.selected,
         onRepoClick = _ref.onRepoClick,
+        onRepoRefresh = _ref.onRepoRefresh,
         loadNextPage = _ref.loadNextPage;
 
     if (!repos.length) return null;
@@ -91563,10 +91592,13 @@ var RepoList = function RepoList(_ref) {
                 name: repo.full_name,
                 description: repo.description,
                 selected: selected === repo.full_name,
-                stars: repo.stargazers_count,
                 onClick: function onClick() {
                     return onRepoClick(repo);
-                } });
+                },
+                onRefresh: function onRefresh() {
+                    return onRepoRefresh(repo);
+                }
+            });
         }),
         loadNextPage && _react2.default.createElement(
             _reactBootstrap.ListGroupItem,
@@ -91620,7 +91652,8 @@ var RepoEntry = function RepoEntry(_ref) {
         description = _ref.description,
         selected = _ref.selected,
         stars = _ref.stars,
-        onClick = _ref.onClick;
+        onClick = _ref.onClick,
+        onRefresh = _ref.onRefresh;
     return _react2.default.createElement(
         _reactBootstrap.ListGroupItem,
         { onClick: onClick, active: selected },
@@ -91651,7 +91684,14 @@ var RepoEntry = function RepoEntry(_ref) {
                     ' stars'
                 )
             )
-        )
+        ),
+        selected && onRefresh && _react2.default.createElement(_reactBootstrap.Glyphicon, {
+            onClick: function onClick(e) {
+                e.stopPropagation();onRefresh();
+            },
+            glyph: 'refresh',
+            style: { position: 'absolute', top: '3px', right: '3px' }
+        })
     );
 };
 
@@ -93023,7 +93063,7 @@ var _anotherRestClient2 = _interopRequireDefault(_anotherRestClient);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _marked = [searchUsers, getUserDetails, getCommits, getRepos, mySaga].map(regeneratorRuntime.mark);
+var _marked = [searchUsers, getUserDetails, getCommits, getRepos, getRepoDetails, mySaga].map(regeneratorRuntime.mark);
 
 var api = new _anotherRestClient2.default('https://api.github.com');
 api.res({
@@ -93192,32 +93232,73 @@ function getRepos(action) {
     }, _marked[3], this, [[0, 11]]);
 }
 
-function mySaga() {
-    return regeneratorRuntime.wrap(function mySaga$(_context5) {
+function getRepoDetails(action) {
+    var repo;
+    return regeneratorRuntime.wrap(function getRepoDetails$(_context5) {
         while (1) {
             switch (_context5.prev = _context5.next) {
                 case 0:
-                    _context5.next = 2;
-                    return (0, _effects.takeLatest)(_constants.QUERY_TYPED, searchUsers);
+                    _context5.prev = 0;
+                    _context5.next = 3;
+                    return (0, _effects.call)(api.repos(action.repo.full_name).get);
 
-                case 2:
-                    _context5.next = 4;
-                    return (0, _effects.takeEvery)(_constants.USER_ADDED, getUserDetails);
-
-                case 4:
+                case 3:
+                    repo = _context5.sent;
                     _context5.next = 6;
-                    return (0, _effects.takeEvery)(_constants.MORE_COMMITS, getCommits);
+                    return (0, _effects.put)((0, _actions.updateRepo)(action.repo, repo));
 
                 case 6:
-                    _context5.next = 8;
-                    return (0, _effects.takeEvery)(_constants.MORE_REPOS, getRepos);
+                    _context5.next = 12;
+                    break;
 
                 case 8:
+                    _context5.prev = 8;
+                    _context5.t0 = _context5['catch'](0);
+                    _context5.next = 12;
+                    return (0, _effects.put)((0, _actions.failRequest)(_context5.t0.message));
+
+                case 12:
                 case 'end':
                     return _context5.stop();
             }
         }
-    }, _marked[4], this);
+    }, _marked[4], this, [[0, 8]]);
+}
+
+function mySaga() {
+    return regeneratorRuntime.wrap(function mySaga$(_context6) {
+        while (1) {
+            switch (_context6.prev = _context6.next) {
+                case 0:
+                    _context6.next = 2;
+                    return (0, _effects.takeLatest)(_constants.QUERY_TYPED, searchUsers);
+
+                case 2:
+                    _context6.next = 4;
+                    return (0, _effects.takeEvery)(_constants.USER_ADDED, getUserDetails);
+
+                case 4:
+                    _context6.next = 6;
+                    return (0, _effects.takeEvery)(_constants.MORE_COMMITS, getCommits);
+
+                case 6:
+                    _context6.next = 8;
+                    return (0, _effects.takeEvery)(_constants.MORE_REPOS, getRepos);
+
+                case 8:
+                    _context6.next = 10;
+                    return (0, _effects.takeLatest)(_constants.REPO_REFRESHED, getCommits);
+
+                case 10:
+                    _context6.next = 12;
+                    return (0, _effects.takeLatest)(_constants.REPO_REFRESHED, getRepoDetails);
+
+                case 12:
+                case 'end':
+                    return _context6.stop();
+            }
+        }
+    }, _marked[5], this);
 }
 
 exports.default = mySaga;

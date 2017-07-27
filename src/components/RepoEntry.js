@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import {ListGroupItem, Badge, Image, Grid, Col, Row} from 'react-bootstrap'
+import {ListGroupItem, Badge, Image, Grid, Col, Row, Glyphicon} from 'react-bootstrap'
 
-const RepoEntry = ({ name, description, selected, stars, onClick }) =>
+const RepoEntry = ({ name, description, selected, stars, onClick, onRefresh }) =>
     <ListGroupItem onClick={onClick} active={selected}>
         <Col xs={12}>
             <Row><strong>{name}</strong></Row>
@@ -13,6 +13,13 @@ const RepoEntry = ({ name, description, selected, stars, onClick }) =>
                 }
             </Row>
         </Col>
+        { selected && onRefresh &&
+            <Glyphicon
+                onClick={(e) => {e.stopPropagation(); onRefresh()}}
+                glyph="refresh"
+                style={{position: 'absolute', top: '3px', right: '3px'}}
+            />
+        }
     </ListGroupItem>
 
 RepoEntry.defaultProps = {

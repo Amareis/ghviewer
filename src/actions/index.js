@@ -1,5 +1,6 @@
 import {QUERY_TYPED, SEARCH_SUCCESS, REQUEST_FAIL, USER_ADDED, USER_SELECTED, USER_UPDATED,
-USER_REMOVED, REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS} from '../constants'
+USER_REMOVED, REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS,
+REPO_REFRESHED, REPO_UPDATED} from '../constants'
 
 
 export const handleSearch = query => {
@@ -89,5 +90,20 @@ export const loadMoreRepos = (user, page) => {
         type: MORE_REPOS,
         user: user,
         page: page
+    }
+}
+
+export const refreshRepo = (repo) => {
+    return {
+        type: REPO_REFRESHED,
+        repo: repo
+    }
+}
+
+export const updateRepo = (oldRepo, newRepo) => {
+    return {
+        type: REPO_UPDATED,
+        oldRepo: oldRepo,
+        newRepo: newRepo
     }
 }
