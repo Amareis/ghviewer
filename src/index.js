@@ -14,7 +14,7 @@ const sagaMiddleware = createSagaMiddleware()
 let extMiddleware = window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 
 let store = createStore(ghViewer,
-    compose(applyMiddleware(sagaMiddleware), persistState(), extMiddleware)
+    compose(applyMiddleware(sagaMiddleware), persistState(), extMiddleware || (a => a))
 )
 sagaMiddleware.run(mySaga)
 
