@@ -9,7 +9,6 @@ const UserList = ({ users, selected, onUserClick, onUserRemove, summary=false, p
     <ListGroup {...props}>
         {summary && users.length > 1 &&
             <SummaryUserEntry
-                stars={100}
                 selected={selected === SUMMARY_USER}
                 onClick={ onUserClick ? () => onUserClick({login: SUMMARY_USER}) : null }
             />
@@ -21,7 +20,6 @@ const UserList = ({ users, selected, onUserClick, onUserRemove, summary=false, p
                     login={user.login}
                     name={user.name}
                     avatar_url={user.avatar_url}
-                    stars={user.stars}
                     selected={selected === user.login}
                     onClick={ onUserClick ? () => onUserClick(user) : null }
                     onRemove={ onUserRemove ? () => onUserRemove(user) : null }/>)

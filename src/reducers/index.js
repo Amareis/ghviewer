@@ -108,12 +108,12 @@ const repos = (state = initialState.userRepos, action) => {
     }
 }
 
-let trancsformCommit = (c) => {return{
+let trancsformCommit = (c) => ({
     hash: c.sha,
     description: c.commit.message,
     author: c.author ? c.author.login : c.commit.author.name,
     date: c.commit.author.date
-}}
+})
 
 const commits = (state = initialState.repoCommits, action) => {
     switch (action.type) {
@@ -162,6 +162,8 @@ const reposPages = (state = initialState.pages.commits, action) => {
         case USER_REMOVED:
             let {[action.user.login]: _, ...newState} = state
             return newState
+        case USER_ADDED:
+            return {...state, [action.user.login]: 1}
         default:
             return state
     }

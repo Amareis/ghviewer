@@ -1,14 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {ListGroupItem, Badge, Col, Row} from 'react-bootstrap'
+import SummaryUserStarsContainer from '../containers/SummaryUserStarsContainer'
 
-const SummaryUserEntry = ({ stars, selected, onClick }) =>
+const SummaryUserEntry = ({ selected, onClick }) =>
     <ListGroupItem onClick={onClick} active={selected}>
         <Col>
             <strong>All users</strong>
-            {stars > -1 &&
-                <Badge className="align-middle" pullRight>{stars} stars</Badge>
-            }
+            <SummaryUserStarsContainer pullRight />
         </Col>
     </ListGroupItem>
 

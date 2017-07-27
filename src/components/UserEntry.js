@@ -1,8 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {ListGroupItem, Badge, Image, Col, Row, Glyphicon} from 'react-bootstrap'
+import UserStarsContainer from '../containers/UserStarsContainer'
 
-const UserEntry = ({ login, name, avatar_url, stars, selected, onClick, onRemove}) =>
+const UserEntry = ({ login, name, avatar_url, selected, onClick, onRemove}) =>
     <ListGroupItem onClick={onClick} active={selected}>
         <Col xs={3} style={{paddingLeft: "5px", paddingRight: "7px"}}>
             {avatar_url &&<Image responsive src={avatar_url}  />}
@@ -11,9 +12,7 @@ const UserEntry = ({ login, name, avatar_url, stars, selected, onClick, onRemove
             <Row><strong>{name ? name : login}</strong></Row>
             <Row>
                 <small>{name ? login : null}</small>
-                {stars > -1 &&
-                    <Badge className="align-middle" pullRight>{stars} stars</Badge>
-                }
+                <UserStarsContainer userLogin={login} pullRight/>
             </Row>
         </Col>
         {onRemove &&
@@ -24,15 +23,11 @@ const UserEntry = ({ login, name, avatar_url, stars, selected, onClick, onRemove
         }
     </ListGroupItem>
 
-UserEntry.defaultProps = {
-    stars: -1
-};
 
 UserEntry.propTypes = {
     login: PropTypes.string.isRequired,
     name: PropTypes.string,
     avatar_url: PropTypes.string,
-    stars: PropTypes.number,
     onClick: PropTypes.func,
 }
 

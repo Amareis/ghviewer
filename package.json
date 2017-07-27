@@ -29,6 +29,7 @@
     "jest": "^20.0.4",
     "loglevel": "^1.4.1",
     "moment": "^2.18.1",
+    "re-reselect": "^0.6.0",
     "react": "^15.6.1",
     "react-bootstrap": "^0.31.1",
     "react-dom": "^15.6.1",
@@ -38,6 +39,7 @@
     "redux": "^3.7.2",
     "redux-localstorage": "^0.4.1",
     "redux-saga": "^0.15.6",
+    "reselect": "^3.0.1",
     "webpack": "^3.2.0",
     "webpack-dev-server": "^2.5.1"
   },

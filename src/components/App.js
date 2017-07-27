@@ -6,8 +6,11 @@ import RepoList from './RepoList'
 import CommitList from './CommitList'
 import {SUMMARY_USER} from "../constants/index";
 
-const App = ({users, repos, commits, pages, selectUser, removeUser, selectRepo, loadMoreCommits, loadMoreRepos}) =>
-    <Grid>
+const App = ({users, repos, commits, pages,
+                 selectUser, removeUser, selectRepo, loadMoreCommits, loadMoreRepos}) => {
+    let currentUser = users.users.find(user => user.login === users.selected)
+
+    return <Grid>
         <Row style={{height: 20}}/>
         <Col sm={3}>
             <UserSearchContainer/>
@@ -16,7 +19,7 @@ const App = ({users, repos, commits, pages, selectUser, removeUser, selectRepo, 
                 selected={users.selected}
                 onUserClick={(user) => {
                     selectUser(user)
-                    if (pages.repos[user.login] === undefined)
+                    if (pages.repos[user.login] === 1)
                         loadMoreRepos(user)
                 }}
                 onUserRemove={removeUser}
@@ -35,13 +38,11 @@ const App = ({users, repos, commits, pages, selectUser, removeUser, selectRepo, 
                 onRepoClick={(repo) => {
                     selectRepo(repo);
                     if (pages.commits[repo.full_name] === undefined)
-                        loadMoreCommits(repo)}
-                }
+                        loadMoreCommits(repo)
+                }}
                 loadNextPage={
                     pages.repos[users.selected] ?
-                        () => loadMoreRepos(
-                            users.users.find(user => user.login === users.selected),
-                            pages.repos[users.selected])
+                        () => loadMoreRepos(currentUser, pages.repos[users.selected])
                         : null
                 }
             />
@@ -59,5 +60,6 @@ const App = ({users, repos, commits, pages, selectUser, removeUser, selectRepo, 
             />
         </Col>
     </Grid>
+}
 
 export default App
