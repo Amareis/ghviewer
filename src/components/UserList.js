@@ -12,6 +12,7 @@ const UserList = ({ users, selected, onUserClick, onUserRemove, onUserRefresh,
             <SummaryUserEntry
                 selected={selected === SUMMARY_USER}
                 onClick={ onUserClick ? () => onUserClick({login: SUMMARY_USER}) : null }
+                onRefresh={ () => users.map(onUserRefresh) }
             />
         }
         {users.length ?

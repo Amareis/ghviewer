@@ -81,8 +81,8 @@ function* mySaga() {
     yield takeEvery(MORE_REPOS, getRepos)
     yield takeLatest(REPO_REFRESHED, getCommits)
     yield takeLatest(REPO_REFRESHED, getRepoDetails)
-    yield takeLatest(USER_REFRESHED, getRepos)
-    yield takeLatest(REPO_REFRESHED, getUserDetails)
+    yield takeEvery(USER_REFRESHED, getRepos)
+    yield takeEvery(REPO_REFRESHED, getUserDetails)
 }
 
 export default mySaga
