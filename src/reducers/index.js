@@ -26,7 +26,7 @@ const initialState = {
     }
 };
 
-const search = (state = initialState.search, action) => {
+export const search = (state = initialState.search, action) => {
     switch (action.type) {
         case QUERY_TYPED:
             return {
