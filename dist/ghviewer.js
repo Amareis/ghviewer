@@ -76062,7 +76062,7 @@ var repos = function repos() {
             });
         case _constants.USER_SELECTED:
             return _extends({}, state, {
-                selected: state.selected.startsWith(action.user.login) ? state.selected : ""
+                selected: ""
             });
         case _constants.USER_REMOVED:
             var _state$repos = state.repos,
@@ -76254,8 +76254,7 @@ var App = function App(_ref) {
         removeUser = _ref.removeUser,
         selectRepo = _ref.selectRepo,
         loadMoreCommits = _ref.loadMoreCommits,
-        loadMoreRepos = _ref.loadMoreRepos,
-        calculateStars = _ref.calculateStars;
+        loadMoreRepos = _ref.loadMoreRepos;
 
     var currentUser = users.users.find(function (user) {
         return user.login === users.selected;

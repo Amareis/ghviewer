@@ -89,7 +89,7 @@ const repos = (state = initialState.userRepos, action) => {
         case USER_SELECTED:
             return {
                 ...state,
-                selected: state.selected.startsWith(action.user.login) ? state.selected : ""
+                selected: ""
             }
         case USER_REMOVED:
             let {[action.user.login]: _, ...newRepos} = state.repos
