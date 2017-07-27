@@ -14,6 +14,7 @@ const RepoList = ({ repos, selected, onRepoClick, onRepoRefresh, loadNextPage })
                 name={repo.full_name}
                 description={repo.description}
                 selected={selected === repo.full_name}
+                stars={repo.stargazers_count}
                 onClick={ () => onRepoClick(repo) }
                 onRefresh = { () => onRepoRefresh(repo) }
             />

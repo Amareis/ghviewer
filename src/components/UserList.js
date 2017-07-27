@@ -5,7 +5,8 @@ import SummaryUserEntry from './SummaryUserEntry'
 import {ListGroup} from 'react-bootstrap'
 import {SUMMARY_USER} from '../constants'
 
-const UserList = ({ users, selected, onUserClick, onUserRemove, summary=false, placeholder=null, ...props }) =>
+const UserList = ({ users, selected, onUserClick, onUserRemove, onUserRefresh,
+                      summary=false, placeholder=null, ...props }) =>
     <ListGroup {...props}>
         {summary && users.length > 1 &&
             <SummaryUserEntry
@@ -22,7 +23,10 @@ const UserList = ({ users, selected, onUserClick, onUserRemove, summary=false, p
                     avatar_url={user.avatar_url}
                     selected={selected === user.login}
                     onClick={ onUserClick ? () => onUserClick(user) : null }
-                    onRemove={ onUserRemove ? () => onUserRemove(user) : null }/>)
+                    onRemove={ onUserRemove ? () => onUserRemove(user) : null }
+                    onRefresh={ onUserRefresh ? () => onUserRefresh(user) : null }
+                />
+            )
             : placeholder
         }
     </ListGroup>

@@ -1,5 +1,5 @@
 import { call, put, takeLatest, takeEvery } from 'redux-saga/effects'
-import {QUERY_TYPED, USER_ADDED, MORE_COMMITS, MORE_REPOS, REPO_REFRESHED} from './constants'
+import {QUERY_TYPED, USER_ADDED, MORE_COMMITS, MORE_REPOS, REPO_REFRESHED, USER_REFRESHED} from './constants'
 import {successSearch, failRequest, updateUser, addRepos, addCommits, updateRepo} from './actions'
 import RestClient from 'another-rest-client'
 
@@ -81,6 +81,8 @@ function* mySaga() {
     yield takeEvery(MORE_REPOS, getRepos)
     yield takeLatest(REPO_REFRESHED, getCommits)
     yield takeLatest(REPO_REFRESHED, getRepoDetails)
+    yield takeLatest(USER_REFRESHED, getRepos)
+    yield takeLatest(REPO_REFRESHED, getUserDetails)
 }
 
 export default mySaga

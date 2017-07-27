@@ -1,6 +1,6 @@
 import {QUERY_TYPED, SEARCH_SUCCESS, REQUEST_FAIL, USER_ADDED, USER_SELECTED, USER_UPDATED,
 USER_REMOVED, REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS,
-REPO_REFRESHED, REPO_UPDATED} from '../constants'
+REPO_REFRESHED, REPO_UPDATED, USER_REFRESHED} from '../constants'
 
 
 export const handleSearch = query => {
@@ -105,5 +105,12 @@ export const updateRepo = (oldRepo, newRepo) => {
         type: REPO_UPDATED,
         oldRepo: oldRepo,
         newRepo: newRepo
+    }
+}
+
+export const refreshUser = (user) => {
+    return {
+        type: USER_REFRESHED,
+        user: user
     }
 }

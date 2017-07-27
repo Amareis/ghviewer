@@ -11861,6 +11861,7 @@ var MORE_COMMITS = exports.MORE_COMMITS = 'MORE_COMMITS';
 var MORE_REPOS = exports.MORE_REPOS = 'MORE_REPOS';
 var REPO_REFRESHED = exports.REPO_REFRESHED = 'REPO_REFRESHED';
 var REPO_UPDATED = exports.REPO_UPDATED = 'REPO_UPDATED';
+var USER_REFRESHED = exports.USER_REFRESHED = 'USER_REFRESHED';
 
 var SUMMARY_USER = exports.SUMMARY_USER = '!summ';
 
@@ -35886,7 +35887,7 @@ module.exports = exports["default"];
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.updateRepo = exports.refreshRepo = exports.loadMoreRepos = exports.loadMoreCommits = exports.addCommits = exports.selectRepo = exports.addRepos = exports.removeUser = exports.updateUser = exports.selectUser = exports.addUser = exports.failRequest = exports.successSearch = exports.handleSearch = undefined;
+exports.refreshUser = exports.updateRepo = exports.refreshRepo = exports.loadMoreRepos = exports.loadMoreCommits = exports.addCommits = exports.selectRepo = exports.addRepos = exports.removeUser = exports.updateUser = exports.selectUser = exports.addUser = exports.failRequest = exports.successSearch = exports.handleSearch = undefined;
 
 var _constants = __webpack_require__(114);
 
@@ -35992,6 +35993,13 @@ var updateRepo = exports.updateRepo = function updateRepo(oldRepo, newRepo) {
         type: _constants.REPO_UPDATED,
         oldRepo: oldRepo,
         newRepo: newRepo
+    };
+};
+
+var refreshUser = exports.refreshUser = function refreshUser(user) {
+    return {
+        type: _constants.USER_REFRESHED,
+        user: user
     };
 };
 
@@ -45992,11 +46000,12 @@ var UserList = function UserList(_ref) {
         selected = _ref.selected,
         onUserClick = _ref.onUserClick,
         onUserRemove = _ref.onUserRemove,
+        onUserRefresh = _ref.onUserRefresh,
         _ref$summary = _ref.summary,
         summary = _ref$summary === undefined ? false : _ref$summary,
         _ref$placeholder = _ref.placeholder,
         placeholder = _ref$placeholder === undefined ? null : _ref$placeholder,
-        props = _objectWithoutProperties(_ref, ['users', 'selected', 'onUserClick', 'onUserRemove', 'summary', 'placeholder']);
+        props = _objectWithoutProperties(_ref, ['users', 'selected', 'onUserClick', 'onUserRemove', 'onUserRefresh', 'summary', 'placeholder']);
 
     return _react2.default.createElement(
         _reactBootstrap.ListGroup,
@@ -46019,7 +46028,11 @@ var UserList = function UserList(_ref) {
                 } : null,
                 onRemove: onUserRemove ? function () {
                     return onUserRemove(user);
-                } : null });
+                } : null,
+                onRefresh: onUserRefresh ? function () {
+                    return onUserRefresh(user);
+                } : null
+            });
         }) : placeholder
     );
 };
@@ -76081,6 +76094,7 @@ var repos = function repos() {
             return _extends({}, state, {
                 selected: ""
             });
+        case _constants.USER_REFRESHED:
         case _constants.USER_REMOVED:
             var _state$repos = state.repos,
                 _ = _state$repos[action.user.login],
@@ -76121,6 +76135,7 @@ var commits = function commits() {
     switch (action.type) {
         case _constants.COMMITS_ADDED:
             return _extends({}, state, _defineProperty({}, action.repo.full_name, (state[action.repo.full_name] || []).concat(action.commits.map(trancsformCommit))));
+        case _constants.USER_REFRESHED:
         case _constants.USER_REMOVED:
             var newState = {};
             for (var key in state) {
@@ -76143,12 +76158,18 @@ var commitsPages = function commitsPages() {
             return _extends({}, state, _defineProperty({}, action.repo.full_name, null)); //чтобы пропала кнопка подгрузки коммитов
         case _constants.COMMITS_ADDED:
             return _extends({}, state, _defineProperty({}, action.repo.full_name, action.nextPage));
+        case _constants.USER_REFRESHED:
         case _constants.USER_REMOVED:
             var newState = {};
             for (var key in state) {
                 if (!key.startsWith(action.user.login)) newState[key] = state[key];
             }
             return newState;
+        case _constants.REPO_REFRESHED:
+            var _ = state[action.repo.full_name],
+                others = _objectWithoutProperties(state, [action.repo.full_name]);
+
+            return others;
         default:
             return state;
     }
@@ -76163,6 +76184,7 @@ var reposPages = function reposPages() {
             return _extends({}, state, _defineProperty({}, action.user.login, null)); //чтобы пропала кнопка подгрузки коммитов
         case _constants.REPOS_ADDED:
             return _extends({}, state, _defineProperty({}, action.user.login, action.nextPage));
+        case _constants.USER_REFRESHED:
         case _constants.USER_REMOVED:
             var _ = state[action.user.login],
                 newState = _objectWithoutProperties(state, [action.user.login]);
@@ -76228,7 +76250,8 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
         selectRepo: _actions.selectRepo,
         loadMoreCommits: _actions.loadMoreCommits,
         loadMoreRepos: _actions.loadMoreRepos,
-        refreshRepo: _actions.refreshRepo
+        refreshRepo: _actions.refreshRepo,
+        refreshUser: _actions.refreshUser
     }, dispatch);
 };
 
@@ -76278,6 +76301,7 @@ var App = function App(_ref) {
         pages = _ref.pages,
         selectUser = _ref.selectUser,
         removeUser = _ref.removeUser,
+        refreshUser = _ref.refreshUser,
         selectRepo = _ref.selectRepo,
         refreshRepo = _ref.refreshRepo,
         loadMoreCommits = _ref.loadMoreCommits,
@@ -76303,6 +76327,7 @@ var App = function App(_ref) {
                     if (pages.repos[user.login] === 1) loadMoreRepos(user);
                 },
                 onUserRemove: removeUser,
+                onUserRefresh: refreshUser,
                 summary: true
             })
         ),
@@ -87349,6 +87374,7 @@ var UserEntry = function UserEntry(_ref) {
         avatar_url = _ref.avatar_url,
         selected = _ref.selected,
         onClick = _ref.onClick,
+        onRefresh = _ref.onRefresh,
         onRemove = _ref.onRemove;
     return _react2.default.createElement(
         _reactBootstrap.ListGroupItem,
@@ -87386,7 +87412,14 @@ var UserEntry = function UserEntry(_ref) {
                 e.stopPropagation();onRemove();
             },
             glyph: 'remove',
-            style: { position: 'absolute', top: '2px', right: '2px' } })
+            style: { position: 'absolute', top: '3px', right: '3px' } }),
+        selected && onRefresh && _react2.default.createElement(_reactBootstrap.Glyphicon, {
+            onClick: function onClick(e) {
+                e.stopPropagation();onRefresh();
+            },
+            glyph: 'refresh',
+            style: { position: 'absolute', top: '3px', right: '20px' }
+        })
     );
 };
 
@@ -91592,6 +91625,7 @@ var RepoList = function RepoList(_ref) {
                 name: repo.full_name,
                 description: repo.description,
                 selected: selected === repo.full_name,
+                stars: repo.stargazers_count,
                 onClick: function onClick() {
                     return onRepoClick(repo);
                 },
@@ -93294,6 +93328,14 @@ function mySaga() {
                     return (0, _effects.takeLatest)(_constants.REPO_REFRESHED, getRepoDetails);
 
                 case 12:
+                    _context6.next = 14;
+                    return (0, _effects.takeLatest)(_constants.USER_REFRESHED, getRepos);
+
+                case 14:
+                    _context6.next = 16;
+                    return (0, _effects.takeLatest)(_constants.REPO_REFRESHED, getUserDetails);
+
+                case 16:
                 case 'end':
                     return _context6.stop();
             }

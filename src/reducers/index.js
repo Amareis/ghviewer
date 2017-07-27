@@ -1,6 +1,7 @@
 import { combineReducers } from 'redux'
 import {QUERY_TYPED, SEARCH_SUCCESS, USER_ADDED, USER_SELECTED, USER_UPDATED, USER_REMOVED,
-REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS, REPO_REFRESHED, REPO_UPDATED} from '../constants'
+REPOS_ADDED, REPO_SELECTED, COMMITS_ADDED, MORE_COMMITS, MORE_REPOS, REPO_REFRESHED, REPO_UPDATED,
+USER_REFRESHED} from '../constants'
 
 const initialState = {
     users: {
@@ -91,6 +92,7 @@ const repos = (state = initialState.userRepos, action) => {
                 ...state,
                 selected: ""
             }
+        case USER_REFRESHED:
         case USER_REMOVED:
             let {[action.user.login]: _, ...newRepos} = state.repos
             return {
@@ -133,6 +135,7 @@ const commits = (state = initialState.repoCommits, action) => {
                 [action.repo.full_name]:
                     (state[action.repo.full_name] || []).concat(action.commits.map(trancsformCommit))
             }
+        case USER_REFRESHED:
         case USER_REMOVED:
             let newState = {}
             for (let key in state) {
@@ -156,6 +159,7 @@ const commitsPages = (state = initialState.pages.commits, action) => {
             return {...state, [action.repo.full_name]: null} //чтобы пропала кнопка подгрузки коммитов
         case COMMITS_ADDED:
             return {...state, [action.repo.full_name]: action.nextPage}
+        case USER_REFRESHED:
         case USER_REMOVED:
             let newState = {}
             for (let key in state) {
@@ -163,6 +167,9 @@ const commitsPages = (state = initialState.pages.commits, action) => {
                     newState[key] = state[key]
             }
             return newState
+        case REPO_REFRESHED:
+            let {[action.repo.full_name]: _, ...others} = state
+            return others
         default:
             return state
     }
@@ -174,6 +181,7 @@ const reposPages = (state = initialState.pages.commits, action) => {
             return {...state, [action.user.login]: null} //чтобы пропала кнопка подгрузки коммитов
         case REPOS_ADDED:
             return {...state, [action.user.login]: action.nextPage}
+        case USER_REFRESHED:
         case USER_REMOVED:
             let {[action.user.login]: _, ...newState} = state
             return newState

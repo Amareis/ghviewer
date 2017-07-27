@@ -7,7 +7,7 @@ import CommitList from './CommitList'
 import {SUMMARY_USER} from "../constants/index";
 
 const App = ({users, repos, commits, pages,
-                 selectUser, removeUser, selectRepo, refreshRepo,
+                 selectUser, removeUser, refreshUser, selectRepo, refreshRepo,
                  loadMoreCommits, loadMoreRepos}) => {
     let currentUser = users.users.find(user => user.login === users.selected)
 
@@ -24,6 +24,7 @@ const App = ({users, repos, commits, pages,
                         loadMoreRepos(user)
                 }}
                 onUserRemove={removeUser}
+                onUserRefresh={refreshUser}
                 summary
             />
         </Col>
