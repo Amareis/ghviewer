@@ -1,1 +1,1 @@
-# ghviewer
+# GitHub Viewer [![Build Status](https://travis-ci.org/Amareis/ghviewer.svg?branch=master)](https://travis-ci.org/Amareis/ghviewer)
